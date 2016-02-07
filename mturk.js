@@ -24,7 +24,7 @@ function gup(name) {
 }
 
 //  Turkify the captioning page.
-$("#mturk_form").submit(function () {
+$(document).ready(function () {
   // is assigntmentId is a URL parameter
   if((aid = gup("assignmentId"))!="" && $(form_selector).length>0) {
 
@@ -36,7 +36,6 @@ $("#mturk_form").submit(function () {
     // Add a new hidden input element with name="assignmentId" that
     // with assignmentId as its value.
     var aid_input = $("<input type='hidden' name='assignmentId' value='" + aid + "'>").appendTo($(form_selector));
-    document.print(aid_input);
 
     // Make sure the submit form's method is POST
     $(form_selector).attr('method', 'POST');
