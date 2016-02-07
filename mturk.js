@@ -36,6 +36,7 @@ $("#mturk_form").submit(function () {
     // Add a new hidden input element with name="assignmentId" that
     // with assignmentId as its value.
     var aid_input = $("<input type='hidden' name='assignmentId' value='" + aid + "'>").appendTo($(form_selector));
+    document.print(aid_input);
 
     // Make sure the submit form's method is POST
     $(form_selector).attr('method', 'POST');
