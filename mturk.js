@@ -24,10 +24,10 @@ function gup(name) {
 }
 
 //  Turkify the captioning page.
-$(form_selector).submit(function () {
+$(document).ready(function () {
   // is assigntmentId is a URL parameter
   if((aid = gup("assignmentId"))!="" && $(form_selector).length>0) {
-
+     console.log(aid);
     // If the HIT hasn't been accepted yet, disabled the form fields.
     if(aid == "ASSIGNMENT_ID_NOT_AVAILABLE") {
 	    $('input,textarea,select').attr("DISABLED", "disabled");
@@ -36,7 +36,7 @@ $(form_selector).submit(function () {
     // Add a new hidden input element with name="assignmentId" that
     // with assignmentId as its value.
     var aid_input = $("<input type='hidden' name='assignmentId' value='" + aid + "'>").appendTo($(form_selector));
-
+    console.log(aid_input);
     // Make sure the submit form's method is POST
     $(form_selector).attr('method', 'POST');
 
