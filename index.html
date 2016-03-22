@@ -1,85 +1,280 @@
- <!DOCTYPE html>
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html>
 <head>
-<title>Crowd Programming</title>
-</head>
-<body>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="./mturk.js"></script>
-<div style="text-align: center;">
-<h1>Count the number of recognizable people in each of the image</h1>
-<p>Pay : Variable starting from $0.20. We would match the count provided by you to the actual number and pay you.</p>
-<p>The closer the number to answer, more chance of getting bonus.</p>
-<p>Give us the good number and get rewarded.</p>
-</div>
+<title>Example Game Like Thing</title>
+Description of the game. 
+<br/>
+Move the red block to save it from the falling blocks.
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 
-
-<form id = "mturk_form" name = "mturk" action = "https://requestersandbox.mturk.com/mturk/externalSubmit" method = "POST" >
-<div style="text-align: center;">
-</br>
-<img src="people1.jpg" style="width:600px;height:300px;">
-</br>
-</br>
-<input type="text" name="number1">
-</br>
-</br>
-</br>
-<img src="people2.jpg" style="width:600px;height:300px;">
-</br>
-</br>
-<input type="text" name="number2">
-</br>
-</br>
-</br>
-</br>
-<img src="people3.jpg"  style="width:600px;height:300px;">
-</br>
-</br>
-<input type="text" name="number3">
-</br>
-</br>
-</br>
-</br>
-<img src="people4.jpg" style="width:600px;height:300px;">
-</br>
-</br>
-<input type="text" name="number4">
-</br>
-</br>
-</br>
-</br>
-<img src="people5.png" style="width:600px;height:300px;">
-</br>
-</br>
-<input type="text" name="number5">
-</br>
-</br>
-</br>
-</br>
-<img src="people6.jpg" style="width:600px;height:300px;">
-</br>
-</br>
-<input type="text" name="number6">
-</br>
-</br>
-</br>
-Find the count of red shirt people for bonus     <input type="text" name="number8">
-</br>
-</br>
-</br>
-</br>
-<img src="crowd.jpg" alt="Mountain View" style="width:600px;height:300px;"> 
-</br>
-</br>
-<input type="text" name="number7">
-</br>
-</br>
-</br>
-<input type="submit" value="Submit">
+<div style="width:800px; margin:0 auto;">
+	<span id = "money">
 </div>
+<form id = "mturk_form" name = "mturk" action = "https://requestersandbox.mturk.com/mturk/externalSubmit" method = "POST">
 </form>
 
-</body>
-</html> 
+
+<div id='gameboard'>
+</div>
+
+<script type = "text/javascript">
+
+var boardSize = 500
+var offset = 0
+var pixSize = 50
+var moneyAmt = 0
+var initTime = new Date().getTime();
+//alert(initTime)
+var board =
+			[[0,0,0,0,0,0,0,0,0,0,0],
+
+			 [0,0,0,0,0,0,0,0,0,0,0],
+
+			 [0,0,0,0,0,0,0,0,0,0,0],
+
+			 [0,0,0,0,0,0,0,0,0,0,0],
+
+			 [0,0,0,0,0,0,0,0,0,0,0],
+
+			 [0,0,0,0,0,0,0,0,0,0,0],
+
+			 [0,0,0,0,0,0,0,0,0,0,0],
+
+			 [0,0,0,0,0,0,0,0,0,0,0],
+
+			 [0,0,0,0,0,0,0,0,0,0,0],
+
+			 [0,0,0,0,0,0,0,0,0,0,0]];
+
+	var pieceX = 0;
+	var pieceY = 0;
+	var shipY = 0;
+	$(document).ready(function() {
+		var $gameboard = $("#gameboard");
+		var piece;
+		var score = 0;
+		var pieceId;
+		$('body').append(gameboard);
+		var ship = $("<div class='ship'></div>");
+		$gameboard.append(ship);
+		var $moneybox = $("#moneybox")
+		generateRandomTopRow(0)
+		$("#money").html(moneyAmt)
+		startFall(0); 
+
+		$(document).keydown(function(e) {
+				if(e.keyCode==37 && pieceX >= 50) {
+					// left arrow clicked
+					pieceX -= pixSize;
+					$(".ship").css("left", pieceX + "px");
+				} else if(e.keyCode == 39 && pieceX <= 400) {
+					// right arrow clicked
+					pieceX += pixSize;
+					$(".ship").css("left", pieceX + "px");
+				} else if(e.keyCode == 37 && pieceX == 0){
+					// left arrow clicked
+					pieceX = 450;
+					$(".ship").css("left", pieceX + "px");
+				} else if(e.keyCode == 39 && pieceX == 450){
+					pieceX = 0;
+					$(".ship").css("left", pieceX + "px");
+				}
+				$gameboard.append(ship);		
+				
+		}); 
+
+		function startFall(offset) {
+			pieceY = 0
+			
+			var i=0
+			fillTheBoard(offset)
+
+			pieceId = setInterval(function() {
+				var i=0
+				var j=0
+
+				for(i=0; i<10; i++){
+					if(board[offset][i] == 1){
+						if(offset <= 8)
+							board[offset+1][i] = board[offset][i]
+						else
+							board[0][i] = board[offset][i]
+						board[offset][i] = 0
+					}
+					else {
+						if(offset <= 8)
+							board[offset+1][i] = 0
+						else
+							board[0][i] = 0
+						board[offset][i] = 0
+					}
+				}
 
 
+				if(!checkCollision() || moneyAmt <= 1.0){
+					
+					//alert(checkCollision())
+					var milliseconds = new Date().getTime();
+					offset = Math.floor((milliseconds / 1000.0) % 10)
+					generateRandomTopRow(offset)
+					moneyAmt = ((milliseconds - initTime)/1000) * 0.05 //5 cent every second
+					$("#money").html(moneyAmt)
+					//window.clearInterval(pieceId);
+					startFall(offset);
+				}
+				else{
+					alert("GAME OVER. YOU EARNED $"+moneyAmt+". Click on OK to return")
+					document.getElementById("mturk_form").submit();
+					//submit form here
+				}
+				
+			},500);
+
+			
+			
+				
+		}
+
+		function fillTheBoard(offset){
+			var j=0;
+			//alert("offset from fill>>>>>> "+offset)
+
+			$('body').append(gameboard);
+			
+			for(j=0; j < 10; j++){
+				if(board[offset][j] == 1){
+					//alert("displaying at::: "+i+"..."+j);
+					var settledPiece = $("<div class='piece' ></div>");
+					settledPiece.css('left',j*pixSize + 'px')
+					settledPiece.css('top',offset*pixSize + 'px')
+					$gameboard.append(settledPiece);
+				}
+				else{
+					//alert("displaying at grey::: "+i+"..."+j);	
+					var settledPiece = $("<div class='destroypiece'></div>");
+					//console.log("displaying at grey::: "+i+"..."+j);
+					settledPiece.css('left', j*pixSize + 'px');
+					settledPiece.css('top', offset*pixSize + 'px');
+					$gameboard.append(settledPiece);
+				}
+				
+			}
+			$(".ship").css("left", pieceX + "px");
+			$gameboard.append(ship);
+		}
+
+		function generateRandomTopRow(offset){
+			var i=0
+			for(i=0; i < 10; i++){
+				var abc = Math.floor((Math.random() * 50) + 0);
+				board[offset][i] = abc%2;
+			}
+		}
+
+		function checkCollision(){
+			if(board[9][pieceX/50] == 1){
+				return true;
+			}
+			var i=0
+			for(i=0; i < 10; i++){
+				board[9][i] = 0;
+			}
+			return false;
+		}
+		
+	});
+</script>
+</div>
+<style>
+#gameboard {
+	background-color: gray;
+	width: 500px;
+	height: 500px;
+	left : 200 px;
+	position: absolute;
+}
+.piece {
+	background-color: green;
+	width: 50px;
+	height: 50px;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+}
+.ship {
+	background-color: #F00;
+	width: 50px;
+	height: 50px;
+	position: absolute;
+	left: 0px;
+	top: 450px;
+}
+.settle {
+	background-color: #AAF;
+	width: 50px;
+	height: 50px;
+	position: absolute;
+	left: 0px;
+	top: 450px;
+}
+.destroypiece {
+	background-color: gray;
+	width: 50px;
+	height: 50px;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+}
+.moneybox {
+	background-color: gray;
+	width: 100px;
+	height: 50px;
+	position: absolute;
+	left: 100px;
+	top: 300px;
+}
+	
+</style>
+
+<script type = "text/javascript">
+// selector used by jquery to identify your form
+var form_selector = "mturk_form";
+
+// function for getting URL parameters
+function gup(name) {
+  name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+  var regexS = "[\\?&]"+name+"=([^&#]*)";
+  var regex = new RegExp(regexS);
+  var results = regex.exec(window.location.href);
+  if(results == null)
+    return "";
+  else return unescape(results[1]);
+}
+
+//  Turkify the captioning page.
+$(document).ready(function () {
+  // is assigntmentId is a URL parameter
+  console.log("function start")
+  if((aid = gup("assignmentId"))!="" && $(form_selector).length>0) {
+     console.log(aid);
+    // If the HIT hasn't been accepted yet, disabled the form fields.
+    if(aid == "ASSIGNMENT_ID_NOT_AVAILABLE") {
+	    $('input,textarea,select').attr("DISABLED", "disabled");
+    }
+
+    // Add a new hidden input element with name="assignmentId" that
+    // with assignmentId as its value.
+    var aid_input = $("<input type='hidden' name='assignmentId' value='" + aid + "'>").appendTo($(form_selector));
+    console.log(aid_input);
+    // Make sure the submit form's method is POST
+    $(form_selector).attr('method', 'POST');
+
+    // Set the Action of the form to the provided "turkSubmitTo" field
+    if((submit_url=gup("turkSubmitTo"))!="") {
+      $(form_selector).attr('action', submit_url + '/mturk/externalSubmit');
+    }
+  }
+});
+</script>
+</head>
+<body>d
