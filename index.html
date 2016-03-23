@@ -118,8 +118,9 @@ var board =
 				if(checkCollision() || moneyAmt > 1.0){
 					milliseconds = new Date().getTime();
 					document.getElementById("timePlayed").value = (milliseconds - initTime)/1000;
-					moneyAmt = ((milliseconds - initTime)/1000) * 0.01
+					moneyAmt = ((milliseconds - initTime)/1000) * 0.01 //1 cent every second
 					document.getElementById("bonusAmt").value = moneyAmt;
+					trackMov = 0
 					alert("GAME OVER. YOU EARNED $"+moneyAmt+". Click on OK to return.")
 					document.getElementById("mturk_form").submit();
 				}
@@ -206,15 +207,16 @@ var board =
 
 		function checkCollision(){
 			
+			var result = false
 			if(board[9][pieceX/50] == 1){
 				//alert("true true")
-				return true;
+				result = true;
 			}
 			var i=0
 			for(i=0; i < 10; i++){
 				board[9][i] = 0;
 			}
-			return false;
+			return result;
 		}
 		
 	});
