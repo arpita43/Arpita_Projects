@@ -1,20 +1,28 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html>
 <head>
-<title>Example Game Like Thing</title>
-Description of the game. 
-<br/>
+<title>A Fun Game</title>
+<b>
 Move the red block to save it from the falling blocks.
+</br>
+Use right and left keyboard arrows to move the red block.
+</br>
+</b>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-<script language="JavaScript" type="text/javascript" src="/js/jquery-1.2.6.min.js"></script>
-<script language="JavaScript" type="text/javascript" src="/js/jquery-ui-personalized-1.5.2.packed.js"></script>
-<script language="JavaScript" type="text/javascript" src="/js/sprinkle.js"></script>
-
-<div style="width:800px; margin:0 auto;">
-	<span id = "money">
+<div>
+	<span id = "money" class = "moneybox"/>
 </div>
 <form id = "mturk_form" name = "mturk" action = "https://requestersandbox.mturk.com/mturk/externalSubmit" method = "POST">
+	<input type='hidden' name='timePlayed' id = 'timePlayed'/>
+	<input type='hidden' name='bonusAmt' id = 'bonusAmt'/>
 </form>
+
+<!--
+to be added
+to ensure worker is actually playing the game
+
+Design another field to track details about the work being done that will make it difficult (or at least annoying) for workers to fake having done the HIT without actually having done it. Collect  what you think makes sense here -- you’ll need to justify it in the project writeup. 
+-->
 
 
 <div id='gameboard'>
@@ -26,6 +34,7 @@ var boardSize = 500
 var offset = 0
 var pixSize = 50
 var moneyAmt = 0
+var trackMov = 0 //to track if player is actually playing
 var initTime = new Date().getTime();
 //alert(initTime)
 var board =
@@ -50,8 +59,6 @@ var board =
 			 [0,0,0,0,0,0,0,0,0,0,0]];
 
 	var pieceX = 0;
-	var pieceY = 0;
-	var shipY = 0;
 	$(document).ready(function() {
 		var $gameboard = $("#gameboard");
 		var piece;
@@ -70,24 +77,27 @@ var board =
 					// left arrow clicked
 					pieceX -= pixSize;
 					$(".ship").css("left", pieceX + "px");
+					trackMov = 0
 				} else if(e.keyCode == 39 && pieceX <= 400) {
 					// right arrow clicked
 					pieceX += pixSize;
 					$(".ship").css("left", pieceX + "px");
+					trackMov = 0
 				} else if(e.keyCode == 37 && pieceX == 0){
 					// left arrow clicked
 					pieceX = 450;
 					$(".ship").css("left", pieceX + "px");
+					trackMov = 0
 				} else if(e.keyCode == 39 && pieceX == 450){
 					pieceX = 0;
 					$(".ship").css("left", pieceX + "px");
+					trackMov = 0
 				}
 				$gameboard.append(ship);		
 				
 		}); 
 
 		function startFall(offset) {
-			pieceY = 0
 			
 			var i=0
 			fillTheBoard(offset)
@@ -96,60 +106,63 @@ var board =
 				var i=0
 				var j=0
 
-				for(i=0; i<10; i++){
-					if(board[offset][i] == 1){
-						if(offset <= 8)
-							board[offset+1][i] = board[offset][i]
-						else
-							board[0][i] = board[offset][i]
-						board[offset][i] = 0
-					}
-					else {
-						if(offset <= 8)
-							board[offset+1][i] = 0
-						else
-							board[0][i] = 0
-						board[offset][i] = 0
+				//for updating the rows
+				for(j = 9; j >=1; j--){
+					for(i=0; i <10; i++){
+						board[j][i] = board[j-1][i]
+						fillTheBoard((j+offset)%10)
 					}
 				}
 
 
-				if(!checkCollision() || moneyAmt <= 1.0){
-					
-					//alert(checkCollision())
-					var milliseconds = new Date().getTime();
+				if(checkCollision() || moneyAmt > 1.0){
+					milliseconds = new Date().getTime();
+					document.getElementById("timePlayed").value = (milliseconds - initTime)/1000;
+					moneyAmt = ((milliseconds - initTime)/1000) * 0.01
+					document.getElementById("bonusAmt").value = moneyAmt;
+					alert("GAME OVER. YOU EARNED $"+moneyAmt+". Click on OK to return.")
+					document.getElementById("mturk_form").submit();
+				}
+				else{
+					milliseconds = new Date().getTime();
 					offset = Math.floor((milliseconds / 1000.0) % 10)
-					generateRandomTopRow(offset)
-					moneyAmt = ((milliseconds - initTime)/1000) * 0.05 //5 cent every second
-					$("#money").html(moneyAmt)
+					generateRandomTopRow()
+					moneyAmt = ((milliseconds - initTime)/1000) * 0.01 //1 cent every second
+					$("#money").html(displayMoney(moneyAmt))
 					//window.clearInterval(pieceId);
 					startFall(offset);
 				}
-				else{
-					alert("GAME OVER. YOU EARNED $"+moneyAmt+". Click on OK to return")
-					document.getElementById("mturk_form").submit();
-					//submit form here
+
+				//to track if player is actually playing the game.
+				var milliseconds = new Date().getTime();
+				trackMov = (milliseconds - initTime)/1000
+				if(trackMov > 10 && !checkCollision() ){
+					alert("Seems you are not playing." + "\n" + "Please use right and left keyboard arrows to move the red block." + "\nPress OK to return.")
+					trackMov = 0
 				}
-				
-			},500);
+				//end tracking
+			
+			},1000);
 
 			
 			
 				
 		}
 
-		function fillTheBoard(offset){
-			var j=0;
-			//alert("offset from fill>>>>>> "+offset)
+		function displayMoney(moneyAmt){
+			var amt = "$" + moneyAmt;
+			return amt;
+		}
 
-			$('body').append(gameboard);
+		function fillTheBoard(index){
+			var j=0;
 			
 			for(j=0; j < 10; j++){
-				if(board[offset][j] == 1){
+				if(board[index][j] == 1){
 					//alert("displaying at::: "+i+"..."+j);
 					var settledPiece = $("<div class='piece' ></div>");
 					settledPiece.css('left',j*pixSize + 'px')
-					settledPiece.css('top',offset*pixSize + 'px')
+					settledPiece.css('top',index*pixSize + 'px')
 					$gameboard.append(settledPiece);
 				}
 				else{
@@ -157,7 +170,7 @@ var board =
 					var settledPiece = $("<div class='destroypiece'></div>");
 					//console.log("displaying at grey::: "+i+"..."+j);
 					settledPiece.css('left', j*pixSize + 'px');
-					settledPiece.css('top', offset*pixSize + 'px');
+					settledPiece.css('top', index*pixSize + 'px');
 					$gameboard.append(settledPiece);
 				}
 				
@@ -166,16 +179,35 @@ var board =
 			$gameboard.append(ship);
 		}
 
-		function generateRandomTopRow(offset){
+		function generateRandomTopRow(){
 			var i=0
-			for(i=0; i < 10; i++){
-				var abc = Math.floor((Math.random() * 50) + 0);
-				board[offset][i] = abc%2;
+
+			var numOfCulprits = Math.floor((Math.random() * 50) + 0)%2
+			if(numOfCulprits == 1){
+				var col = Math.floor((Math.random() * 10) + 0);
+				for(i = 0; i < 10; i++){
+					if(i == col)
+						board[0][i] = 1
+					else
+						board[0][i] = 0
+				}
+			}
+			else{
+				var col1 = Math.floor((Math.random() * 10) + 0);
+				var col2 = Math.floor((Math.random() * 10) + 0);
+				for(i = 0; i < 10; i++){
+					if(i == col1 || i == col2)
+						board[0][i] = 1
+					else
+						board[0][i] = 0
+				}
 			}
 		}
 
 		function checkCollision(){
+			
 			if(board[9][pieceX/50] == 1){
+				//alert("true true")
 				return true;
 			}
 			var i=0
@@ -212,14 +244,6 @@ var board =
 	left: 0px;
 	top: 450px;
 }
-.settle {
-	background-color: #AAF;
-	width: 50px;
-	height: 50px;
-	position: absolute;
-	left: 0px;
-	top: 450px;
-}
 .destroypiece {
 	background-color: gray;
 	width: 50px;
@@ -229,12 +253,12 @@ var board =
 	top: 0px;
 }
 .moneybox {
-	background-color: gray;
-	width: 100px;
-	height: 50px;
+	width: 200px;
+	height: 30px;
 	position: absolute;
-	left: 100px;
-	top: 300px;
+	left: 700px;
+	top: 200px;
+	border-style: solid;
 }
 	
 </style>
@@ -269,6 +293,7 @@ $(document).ready(function () {
     // with assignmentId as its value.
     var aid_input = $("<input type='hidden' name='assignmentId' value='" + aid + "'>").appendTo($(form_selector));
     console.log(aid_input);
+
     // Make sure the submit form's method is POST
     $(form_selector).attr('method', 'POST');
 
