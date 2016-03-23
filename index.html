@@ -129,18 +129,18 @@ var board =
 					generateRandomTopRow()
 					moneyAmt = ((milliseconds - initTime)/1000) * 0.01 //1 cent every second
 					$("#money").html(displayMoney(moneyAmt))
-					//window.clearInterval(pieceId);
+					
+					//to track if player is actually playing the game.
+					trackMov = (milliseconds - initTime)/1000
+					if(trackMov > 15){
+						alert("Seems you are not playing." + "\n" + "Please use right and left keyboard arrows to move the red block." + "\nPress OK to return.")
+					trackMov = 0
+					}
+					//end tracking
 					startFall(offset);
 				}
 
-				//to track if player is actually playing the game.
-				var milliseconds = new Date().getTime();
-				trackMov = (milliseconds - initTime)/1000
-				if(trackMov > 10 && !checkCollision() ){
-					alert("Seems you are not playing." + "\n" + "Please use right and left keyboard arrows to move the red block." + "\nPress OK to return.")
-					trackMov = 0
-				}
-				//end tracking
+				
 			
 			},1000);
 
