@@ -34,8 +34,8 @@ var boardSize = 500
 var offset = 0
 var pixSize = 50
 var moneyAmt = 0
-var trackMov = 0 //to track if player is actually playing
 var initTime = new Date().getTime();
+var newTime = new Date().getTime();
 //alert(initTime)
 var board =
 			[[0,0,0,0,0,0,0,0,0,0,0],
@@ -70,6 +70,7 @@ var board =
 		var $moneybox = $("#moneybox")
 		generateRandomTopRow(0)
 		$("#money").html(moneyAmt)
+		var trackMov = 0 //to track if player is actually playing
 		startFall(0); 
 
 		$(document).keydown(function(e) {
@@ -77,24 +78,21 @@ var board =
 					// left arrow clicked
 					pieceX -= pixSize;
 					$(".ship").css("left", pieceX + "px");
-					trackMov = 0
 				} else if(e.keyCode == 39 && pieceX <= 400) {
 					// right arrow clicked
 					pieceX += pixSize;
 					$(".ship").css("left", pieceX + "px");
-					trackMov = 0
 				} else if(e.keyCode == 37 && pieceX == 0){
 					// left arrow clicked
 					pieceX = 450;
 					$(".ship").css("left", pieceX + "px");
-					trackMov = 0
 				} else if(e.keyCode == 39 && pieceX == 450){
 					pieceX = 0;
 					$(".ship").css("left", pieceX + "px");
-					trackMov = 0
 				}
-				$gameboard.append(ship);		
-				
+				trackMov = 0
+				newTime = new Date().getTime();
+				$gameboard.append(ship);			
 		}); 
 
 		function startFall(offset) {
@@ -121,10 +119,12 @@ var board =
 					moneyAmt = ((milliseconds - initTime)/1000) * 0.01 //1 cent every second
 					document.getElementById("bonusAmt").value = moneyAmt;
 					trackMov = 0
+					newTime = milliseconds;
+					clearInterval(pieceId);
 					alert("GAME OVER. YOU EARNED $"+moneyAmt+". Click on OK to return.")
 					document.getElementById("mturk_form").submit();
 				}
-				else{
+				else if(!checkCollision()){
 					milliseconds = new Date().getTime();
 					offset = Math.floor((milliseconds / 1000.0) % 10)
 					generateRandomTopRow()
@@ -132,18 +132,23 @@ var board =
 					$("#money").html(displayMoney(moneyAmt))
 					
 					//to track if player is actually playing the game.
-					trackMov = (milliseconds - initTime)/1000
-					if(trackMov > 15){
-						alert("Seems you are not playing." + "\n" + "Please use right and left keyboard arrows to move the red block." + "\nPress OK to return.")
-					trackMov = 0
+					trackMov = (milliseconds - newTime)/1000
+					if(trackMov > 20){
+						alert("Please use right and left keyboard arrows to move the red block." + "\nPress OK to return. "+trackMov)
+						console.log("Please use right and left keyboard arrows to move the red block." + "\nPress OK to return. "+trackMov)
+						trackMov = 0
+						newTime = milliseconds;
 					}
 					//end tracking
+					clearInterval(pieceId);
 					startFall(offset);
+				}
+				else {
 				}
 
 				
 			
-			},1000);
+			},300);
 
 			
 			
@@ -151,7 +156,7 @@ var board =
 		}
 
 		function displayMoney(moneyAmt){
-			var amt = "$" + moneyAmt;
+			var amt = "$" + moneyAmt.toFixed(3);
 			return amt;
 		}
 
@@ -213,9 +218,9 @@ var board =
 				result = true;
 			}
 			var i=0
-			for(i=0; i < 10; i++){
+			/*for(i=0; i < 10; i++){
 				board[9][i] = 0;
-			}
+			}*/
 			return result;
 		}
 		
@@ -255,12 +260,13 @@ var board =
 	top: 0px;
 }
 .moneybox {
-	width: 200px;
-	height: 30px;
+	width: 50px;
+	height: 20px;
 	position: absolute;
 	left: 700px;
 	top: 200px;
 	border-style: solid;
+	padding: 10px 10px 10px 10px;
 }
 	
 </style>
@@ -283,7 +289,6 @@ function gup(name) {
 //  Turkify the captioning page.
 $(document).ready(function () {
   // is assigntmentId is a URL parameter
-  console.log("function start")
   if((aid = gup("assignmentId"))!="" && $(form_selector).length>0) {
      console.log(aid);
     // If the HIT hasn't been accepted yet, disabled the form fields.
