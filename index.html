@@ -3,17 +3,23 @@
 <head>
 <title>A Fun Game</title>
 <b>
-Move the red block to save it from the falling green blocks.
+Move the red block to save it from the falling green blocks. Use right and left keyboard arrows to move the red block.
 </br>
-Use right and left keyboard arrows to move the red block.
 </br>
-Prize depends on how long you save yourself from enemies.
+Prize depends on how long you save yourself from enemies. Click on "Click here to play" to start the game.
+</br>
 </br>
 </b>
+<div id="target" class = "start">
+  Click here to play
+</div>
+</br>
+</br>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 <div>
 	<span id = "money" class = "moneybox"/>
 </div>
+
 <form id = "mturk_form" name = "mturk" action = "https://requestersandbox.mturk.com/mturk/externalSubmit" method = "POST">
 	<input type='hidden' name='timePlayed' id = 'timePlayed'/>
 	<input type='hidden' name='bonusAmt' id = 'bonusAmt'/>
@@ -61,7 +67,7 @@ var board =
 			 [0,0,0,0,0,0,0,0,0,0,0]];
 
 	var pieceX = 0;
-	$(document).ready(function() {
+	$("#target").click(function() {
 		var $gameboard = $("#gameboard");
 		var piece;
 		var score = 0;
@@ -118,7 +124,7 @@ var board =
 				if(checkCollision() || moneyAmt > 1.0){
 					milliseconds = new Date().getTime();
 					document.getElementById("timePlayed").value = (milliseconds - initTime)/1000;
-					moneyAmt = ((milliseconds - initTime)/1000) * 0.01 //1 cent every second
+					moneyAmt = ((milliseconds - initTime)/1000) * 0.005 
 					document.getElementById("bonusAmt").value = moneyAmt;
 					trackMov = 0
 					newTime = milliseconds;
@@ -130,7 +136,7 @@ var board =
 					milliseconds = new Date().getTime();
 					offset = Math.floor((milliseconds / 1000.0) % 10)
 					generateRandomTopRow()
-					moneyAmt = ((milliseconds - initTime)/1000) * 0.01 //1 cent every second
+					moneyAmt = ((milliseconds - initTime)/1000) * 0.005 
 					$("#money").html(displayMoney(moneyAmt))
 					
 					//to track if player is actually playing the game.
@@ -269,6 +275,11 @@ var board =
 	top: 200px;
 	border-style: solid;
 	padding: 10px 10px 10px 10px;
+}
+.start {
+	position: absolute;
+	left: 200px;
+	color: blue;
 }
 	
 </style>
