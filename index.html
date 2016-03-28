@@ -42,9 +42,7 @@ var boardSize = 500
 var offset = 0
 var pixSize = 50
 var moneyAmt = 0
-var initTime = new Date().getTime();
-var newTime = new Date().getTime();
-//alert(initTime)
+
 var board =
 			[[0,0,0,0,0,0,0,0,0,0,0],
 
@@ -68,6 +66,8 @@ var board =
 
 	var pieceX = 0;
 	$("#target").click(function() {
+		var initTime = new Date().getTime();
+		var newTime = new Date().getTime();
 		var $gameboard = $("#gameboard");
 		var piece;
 		var score = 0;
