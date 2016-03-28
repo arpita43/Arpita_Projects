@@ -142,8 +142,8 @@ var board =
 					//to track if player is actually playing the game.
 					trackMov = (milliseconds - newTime)/1000
 					if(trackMov > 20){
-						alert("Please use right and left keyboard arrows to move the red block." + "\nPress OK to return. "+trackMov)
-						console.log("Please use right and left keyboard arrows to move the red block." + "\nPress OK to return. "+trackMov)
+						alert("Please use right and left keyboard arrows to move the red block." + "\nPress OK to return. ")
+						//console.log("Please use right and left keyboard arrows to move the red block." + "\nPress OK to return. "+trackMov)
 						trackMov = 0
 						newTime = milliseconds;
 					}
