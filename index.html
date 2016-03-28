@@ -124,10 +124,11 @@ var board =
 				if(checkCollision() || moneyAmt > 1.0){
 					milliseconds = new Date().getTime();
 					var timePlayed = (milliseconds - initTime)/1000;
-					debugger;
+					console.log(timePlayed)
 					document.getElementById("timePlayed").value = timePlayed
 					console.log("1")
 					moneyAmt = ((milliseconds - initTime)/1000) * 0.005 
+					console.log(moneyAmt)
 					document.getElementById("bonusAmt").value = moneyAmt;
 					console.log("2")
 					trackMov = 0
