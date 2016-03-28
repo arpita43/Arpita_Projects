@@ -25,13 +25,6 @@ Prize depends on how long you save yourself from enemies. Click on "Click here t
 	<input type='hidden' name='bonusAmt' id = 'bonusAmt'/>
 </form>
 
-<!--
-to be added
-to ensure worker is actually playing the game
-
-Design another field to track details about the work being done that will make it difficult (or at least annoying) for workers to fake having done the HIT without actually having done it. Collect  what you think makes sense here -- you’ll need to justify it in the project writeup. 
--->
-
 
 <div id='gameboard'>
 </div>
@@ -307,6 +300,7 @@ function gup(name) {
 //  Turkify the captioning page.
 $(document).ready(function () {
   // is assigntmentId is a URL parameter
+  console.log("function started")
   if((aid = gup("assignmentId"))!="" && $(form_selector).length>0) {
      console.log(aid);
     // If the HIT hasn't been accepted yet, disabled the form fields.
