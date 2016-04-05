@@ -35,7 +35,7 @@ var boardSize = 500
 var offset = 0
 var pixSize = 50
 var moneyAmt = 0
-
+var shipLocation = [0,0,0,0,0,0,0,0,0,0] //puts the number of players on this position
 var board =
 			[[0,0,0,0,0,0,0,0,0,0,0],
 
@@ -58,6 +58,7 @@ var board =
 			 [0,0,0,0,0,0,0,0,0,0,0]];
 
 	var pieceX = 0;
+	var mode = 0
 	$("#target").click(function() {
 		var initTime = new Date().getTime();
 		var newTime = new Date().getTime();
@@ -72,22 +73,26 @@ var board =
 		generateRandomTopRow(0)
 		$("#money").html(moneyAmt)
 		var trackMov = 0 //to track if player is actually playing
-		startFall(0); 
+		startFall(0,0); 
 
 		$(document).keydown(function(e) {
 				if(e.keyCode==37 && pieceX >= 50) {
 					// left arrow clicked
+					shipLocation[pieceX/50] -= 1
 					pieceX -= pixSize;
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 39 && pieceX <= 400) {
 					// right arrow clicked
+					shipLocation[pieceX/50] -= 1
 					pieceX += pixSize;
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 37 && pieceX == 0){
 					// left arrow clicked
+					shipLocation[0] -= 1
 					pieceX = 450;
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 39 && pieceX == 450){
+					shipLocation[9] -= 1
 					pieceX = 0;
 					$(".ship").css("left", pieceX + "px");
 				}
@@ -96,25 +101,41 @@ var board =
 				$gameboard.append(ship);			
 		}); 
 
-		function startFall(offset) {
+		function startFall(offset, mode) {
 			
 			var i=0
-			fillTheBoard(offset)
-
+			fillTheBoard(offset, mode)
 			pieceId = setInterval(function() {
 				var i=0
 				var j=0
+
+				//checkShipPositions
+				/*for(i = 0; i < 10; i++){
+					update(i)
+				}*/
+
+				update(pieceX)
+
+				//find mode
+				i = 0
+				mode = shipLocation[0]
+				//alert(shipLocation)
+				for(i=1; i < 10; i++){
+					if(shipLocation[i] > mode)
+						mode = shipLocation[i]
+				}
+				alert(mode)
 
 				//for updating the rows
 				for(j = 9; j >=1; j--){
 					for(i=0; i <10; i++){
 						board[j][i] = board[j-1][i]
-						fillTheBoard((j+offset)%10)
+						fillTheBoard((j+offset)%10,mode)
 					}
 				}
+				
 
-
-				if(checkCollision() || moneyAmt > 1.0){
+				if(checkCollision(mode) || moneyAmt > 1.0){
 					milliseconds = new Date().getTime();
 					var timePlayed = (milliseconds - initTime)/1000;
 					console.log(timePlayed)
@@ -130,7 +151,7 @@ var board =
 					alert("GAME OVER. YOU EARNED $"+moneyAmt+". Click on OK to return.")
 					document.getElementById("mturk_form").submit();
 				}
-				else if(!checkCollision()){
+				else if(!checkCollision(mode)){
 					milliseconds = new Date().getTime();
 					offset = Math.floor((milliseconds / 1000.0) % 10)
 					generateRandomTopRow()
@@ -147,18 +168,13 @@ var board =
 					}
 					//end tracking
 					clearInterval(pieceId);
-					startFall(offset);
+					startFall(offset,mode);
 				}
 				else {
 				}
 
-				
-			
-			},300);
-
-			
-			
-				
+			},1000);
+	
 		}
 
 		function displayMoney(moneyAmt){
@@ -166,9 +182,8 @@ var board =
 			return amt;
 		}
 
-		function fillTheBoard(index){
+		function fillTheBoard(index,mode){
 			var j=0;
-			
 			for(j=0; j < 10; j++){
 				if(board[index][j] == 1){
 					//alert("displaying at::: "+i+"..."+j);
@@ -187,7 +202,7 @@ var board =
 				}
 				
 			}
-			$(".ship").css("left", pieceX + "px");
+			$(".ship").css("left", mode*50 + "px");
 			$gameboard.append(ship);
 		}
 
@@ -216,19 +231,35 @@ var board =
 			}
 		}
 
-		function checkCollision(){
-			
+		function checkCollision(mode){
 			var result = false
-			if(board[9][pieceX/50] == 1){
-				//alert("true true")
+			if(board[9][mode] == 1){
 				result = true;
-			}
-			var i=0
-			/*for(i=0; i < 10; i++){
-				board[9][i] = 0;
-			}*/
+			}	
 			return result;
 		}
+
+		function update(shipLoc) {
+		    
+		    $.ajax({
+			    url: "http://codingthecrowd.com/counter.php?key=arpita&data=shipLoc/50",
+			 
+			    // Tell jQuery we're expecting JSONP
+			    dataType: "jsonp",
+			 
+			    // Tell YQL what we want and that we want JSON
+			    data: {
+				data: "select title,abstract,url from search.news where query=\"cat\""
+		    },
+		 
+		    // Work with the response
+		    success: function( response ) {
+			$("#value").html( response["results"].length); // server response
+			//alert(response["results"].length);
+			shipLocation[shipLoc/50] = response["results"].length
+		    }
+		});
+}
 		
 	});
 </script>
