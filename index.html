@@ -73,26 +73,31 @@ var board =
 		generateRandomTopRow(0)
 		$("#money").html(moneyAmt)
 		var trackMov = 0 //to track if player is actually playing
+		fillTheBoard(offset, mode)
 		startFall(0,0); 
 
 		$(document).keydown(function(e) {
 				if(e.keyCode==37 && pieceX >= 50) {
 					// left arrow clicked
-					shipLocation[pieceX/50] -= 1
+					if(shipLocation[pieceX/50] > 0)
+						shipLocation[pieceX/50] -= 1
 					pieceX -= pixSize;
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 39 && pieceX <= 400) {
 					// right arrow clicked
-					shipLocation[pieceX/50] -= 1
+					if(shipLocation[pieceX/50] > 0)
+						shipLocation[pieceX/50] -= 1
 					pieceX += pixSize;
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 37 && pieceX == 0){
 					// left arrow clicked
-					shipLocation[0] -= 1
+					if(shipLocation[0] > 0)
+						shipLocation[0] -= 1
 					pieceX = 450;
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 39 && pieceX == 450){
-					shipLocation[9] -= 1
+					if(shipLocation[9] > 0)
+						shipLocation[9] -= 1
 					pieceX = 0;
 					$(".ship").css("left", pieceX + "px");
 				}
@@ -102,29 +107,23 @@ var board =
 		}); 
 
 		function startFall(offset, mode) {
-			
 			var i=0
-			fillTheBoard(offset, mode)
 			pieceId = setInterval(function() {
 				var i=0
 				var j=0
-
-				//checkShipPositions
-				/*for(i = 0; i < 10; i++){
-					update(i)
-				}*/
 
 				update(pieceX)
 
 				//find mode
 				i = 0
-				mode = shipLocation[0]
+				mode = pieceX/50
 				//alert(shipLocation)
-				for(i=1; i < 10; i++){
-					if(shipLocation[i] > mode)
-						mode = shipLocation[i]
+				for(i=0; i < 9; i++){
+					if(shipLocation[i] > shipLocation[mode])
+						mode = i
 				}
-				alert(mode)
+				//alert(mode)
+				fillTheBoard(offset, mode)
 
 				//for updating the rows
 				for(j = 9; j >=1; j--){
@@ -140,11 +139,9 @@ var board =
 					var timePlayed = (milliseconds - initTime)/1000;
 					console.log(timePlayed)
 					document.getElementById("timePlayed").value = timePlayed
-					console.log("1")
-					moneyAmt = ((milliseconds - initTime)/1000) * 0.005 
+					moneyAmt = ((milliseconds - initTime)/1000) * 0.002 
 					console.log(moneyAmt)
 					document.getElementById("bonusAmt").value = moneyAmt;
-					console.log("2")
 					trackMov = 0
 					newTime = milliseconds;
 					clearInterval(pieceId);
@@ -155,7 +152,7 @@ var board =
 					milliseconds = new Date().getTime();
 					offset = Math.floor((milliseconds / 1000.0) % 10)
 					generateRandomTopRow()
-					moneyAmt = ((milliseconds - initTime)/1000) * 0.005 
+					moneyAmt = ((milliseconds - initTime)/1000) * 0.002 
 					$("#money").html(displayMoney(moneyAmt))
 					
 					//to track if player is actually playing the game.
@@ -173,7 +170,7 @@ var board =
 				else {
 				}
 
-			},1000);
+			},2000);
 	
 		}
 
@@ -202,6 +199,7 @@ var board =
 				}
 				
 			}
+			//alert(mode*50)
 			$(".ship").css("left", mode*50 + "px");
 			$gameboard.append(ship);
 		}
@@ -255,11 +253,12 @@ var board =
 		    // Work with the response
 		    success: function( response ) {
 			$("#value").html( response["results"].length); // server response
-			//alert(response["results"].length);
+			//alert(response["results"].length+"..."+shipLoc/50);
 			shipLocation[shipLoc/50] = response["results"].length
+			//alert(shipLocation)
 		    }
 		});
-}
+	}
 		
 	});
 </script>
