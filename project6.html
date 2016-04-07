@@ -73,7 +73,7 @@ var board =
 		generateRandomTopRow(0)
 		$("#money").html(moneyAmt)
 		var trackMov = 0 //to track if player is actually playing
-		update(0, "going")
+		update(0)
 		fillTheBoard(offset, 0)
 		startFall(0,0); 
 
@@ -84,7 +84,7 @@ var board =
 						shipLocation[pieceX/50] -= 1
 					pieceX -= pixSize;
 					//shipLocation[pieceX/50] += 1
-					update(pieceX,"going")
+					update(pieceX/50)
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 39 && pieceX <= 400) {
 					// right arrow clicked
@@ -92,7 +92,7 @@ var board =
 						shipLocation[pieceX/50] -= 1
 					pieceX += pixSize;
 					//shipLocation[pieceX/50] += 1
-					update(pieceX,"going")
+					update(pieceX/50)
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 37 && pieceX == 0){
 					// left arrow clicked
@@ -100,14 +100,14 @@ var board =
 						shipLocation[0] -= 1
 					pieceX = 450;
 					//shipLocation[450] += 1
-					update(450,"going")
+					update(9)
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 39 && pieceX == 450){
 					if(shipLocation[9] > 0)
 						shipLocation[9] -= 1
 					pieceX = 0;
 					//shipLocation[0] += 1
-					update(0,"going")
+					update(0)
 					$(".ship").css("left", pieceX + "px");
 				}
 				trackMov = 0
@@ -117,6 +117,7 @@ var board =
 
 		function startFall(offset, mode) {
 			var i=0
+			console.log("startFall")
 			pieceId = setInterval(function() {
 				var i=0
 				var j=0
@@ -137,14 +138,8 @@ var board =
 						fillTheBoard((j+offset)%10,mode)
 					}
 				}
-				
-				if(checkCollision(mode)){
-					for(var k=0; k<10; k++){
-						update(k*50,"over")
-					}
-				}
 
-				else if(moneyAmt > 1.0){
+				if(moneyAmt > 1.0){
 					
 					var timePlayed = (milliseconds - initTime)/1000;
 					console.log(timePlayed)
@@ -178,8 +173,6 @@ var board =
 					clearInterval(pieceId);
 					startFall(offset,mode);
 				}
-				else {
-				}
 
 			},1000);
 	
@@ -211,9 +204,12 @@ var board =
 				
 			}
 			console.log(shipLocation)
-			update(mode*50, "going")
 			$(".ship").css("left", mode*50 + "px");
 			$gameboard.append(ship);
+			
+			if(checkCollision(mode)){
+				update(-1)
+			}
 		}
 
 		function generateRandomTopRow(){
@@ -246,56 +242,54 @@ var board =
 			if(board[9][mode] == 1){
 				result = true;
 				console.log("collision")
+				for(var k=0; k<10; k++){
+					update(-1)
+				}
 			}	
 			return result;
 		}
 
-		function update(shipLoc,stat) {
+		function update(loc) {
 
-		    var dataParam = (shipLoc/50).toString()
-		    
-		    $.ajax({
-			    url: "http://codingthecrowd.com/counter.php?key=arpita&data=dataParam&status=stat",
-			 
-			    // Tell jQuery we're expecting JSONP
-			    dataType: "jsonp",
-			 
-			    // Tell YQL what we want and that we want JSON
-			    data: {
-				data: dataParam,
-				status: stat
-			    
-		    },
-		 
-		    // Work with the response
-		    success: function( response ) {
-
-			for(var k=0; k < response["results"].length; k++){
-				if(response["results"][k]["status"] == "over"){
-					alert(response["results"][k]["status"])
-					milliseconds = new Date().getTime();
-					var timePlayed = (milliseconds - initTime)/1000;
-					console.log(timePlayed)
-					document.getElementById("timePlayed").value = timePlayed
-					moneyAmt = ((milliseconds - initTime)/1000) * 0.002 
-					console.log(moneyAmt)
-					document.getElementById("bonusAmt").value = moneyAmt;
-					trackMov = 0
-					newTime = milliseconds;
-					clearInterval(pieceId);
-					alert("GAME OVER. YOU EARNED $"+moneyAmt+". Click on OK to return.")
-					document.getElementById("mturk_form").submit();
-				}
-			}
-
-
-			//$("#value").html( response["results"].length); // server response
-			
-			shipLocation[dataParam] = response["results"].length
-			//alert(shipLocation)
-			//$("#value").html( response["results"][0]["sid"]); // server response
+		    var dataParam = loc.toString()
+		    if(dataParam < 0){
+				milliseconds = new Date().getTime();
+				var timePlayed = (milliseconds - initTime)/1000;
+				console.log(timePlayed)
+				document.getElementById("timePlayed").value = timePlayed
+				moneyAmt = ((milliseconds - initTime)/1000) * 0.002 
+				console.log(moneyAmt)
+				document.getElementById("bonusAmt").value = moneyAmt;
+				trackMov = 0
+				newTime = milliseconds;
+				clearInterval(pieceId);
+				alert("GAME OVER. YOU EARNED $"+moneyAmt+". Click on OK to return.")
+				document.getElementById("mturk_form").submit();
 		    }
-		});
+		
+		    else {
+			    $.ajax({
+				    url: "http://codingthecrowd.com/counter.php?key=arpita&data=dataParam",
+				 
+				    // Tell jQuery we're expecting JSONP
+				    dataType: "jsonp",
+				 
+				    // Tell YQL what we want and that we want JSON
+				    data: {
+					data: dataParam,
+				    
+			    },
+			 
+			    // Work with the response
+			    success: function( response ) {
+				//$("#value").html( response["results"].length); // server response
+			
+				shipLocation[dataParam] = response["results"].length
+				//alert(shipLocation)
+				//$("#value").html( response["results"][0]["sid"]); // server response
+			    }
+			});
+		}
 	}
 		
 	});
