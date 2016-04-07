@@ -73,7 +73,8 @@ var board =
 		generateRandomTopRow(0)
 		$("#money").html(moneyAmt)
 		var trackMov = 0 //to track if player is actually playing
-		fillTheBoard(offset, mode)
+		update(0, "going")
+		fillTheBoard(offset, 0)
 		startFall(0,0); 
 
 		$(document).keydown(function(e) {
@@ -120,8 +121,6 @@ var board =
 				var i=0
 				var j=0
 
-				update(pieceX, "going")
-
 				//find mode
 				i = 0
 				mode = pieceX/50
@@ -139,10 +138,13 @@ var board =
 					}
 				}
 				
+				if(checkCollision(mode)){
+					for(var k=0; k<10; k++){
+						update(k*50,"over")
+					}
+				}
 
-				if(checkCollision(mode) || moneyAmt > 1.0){
-					
-					//update(-50, "over")
+				else if(moneyAmt > 1.0){
 					
 					var timePlayed = (milliseconds - initTime)/1000;
 					console.log(timePlayed)
@@ -157,7 +159,7 @@ var board =
 					document.getElementById("mturk_form").submit();
 					
 				}
-				else if(!checkCollision(mode)){
+				else {
 					milliseconds = new Date().getTime();
 					offset = Math.floor((milliseconds / 1000.0) % 10)
 					generateRandomTopRow()
@@ -209,6 +211,7 @@ var board =
 				
 			}
 			console.log(shipLocation)
+			update(mode*50, "going")
 			$(".ship").css("left", mode*50 + "px");
 			$gameboard.append(ship);
 		}
@@ -243,9 +246,6 @@ var board =
 			if(board[9][mode] == 1){
 				result = true;
 				console.log("collision")
-				for(var k=0; k<10; k++){
-					update(k*50,"over")
-				}
 			}	
 			return result;
 		}
@@ -272,6 +272,7 @@ var board =
 
 			for(var k=0; k < response["results"].length; k++){
 				if(response["results"][k]["status"] == "over"){
+					alert(response["results"][k]["status"])
 					milliseconds = new Date().getTime();
 					var timePlayed = (milliseconds - initTime)/1000;
 					console.log(timePlayed)
