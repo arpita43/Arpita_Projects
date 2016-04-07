@@ -70,43 +70,38 @@ var board =
 		var ship = $("<div class='ship'></div>");
 		$gameboard.append(ship);
 		var $moneybox = $("#moneybox")
-		generateRandomTopRow(0)
+		generateRandomTopRow()
 		$("#money").html(moneyAmt)
 		var trackMov = 0 //to track if player is actually playing
 		update(0)
-		fillTheBoard(offset, 0)
 		startFall(0,0); 
 
 		$(document).keydown(function(e) {
 				if(e.keyCode==37 && pieceX >= 50) {
 					// left arrow clicked
-					if(shipLocation[pieceX/50] > 0)
-						shipLocation[pieceX/50] -= 1
+					/*if(shipLocation[pieceX/50] > 0)
+						shipLocation[pieceX/50] -= 1*/
 					pieceX -= pixSize;
-					//shipLocation[pieceX/50] += 1
 					update(pieceX/50)
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 39 && pieceX <= 400) {
 					// right arrow clicked
-					if(shipLocation[pieceX/50] > 0)
-						shipLocation[pieceX/50] -= 1
+					/*if(shipLocation[pieceX/50] > 0)
+						shipLocation[pieceX/50] -= 1*/
 					pieceX += pixSize;
-					//shipLocation[pieceX/50] += 1
 					update(pieceX/50)
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 37 && pieceX == 0){
 					// left arrow clicked
-					if(shipLocation[0] > 0)
-						shipLocation[0] -= 1
+					/*if(shipLocation[0] > 0)
+						shipLocation[0] -= 1*/
 					pieceX = 450;
-					//shipLocation[450] += 1
 					update(9)
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 39 && pieceX == 450){
-					if(shipLocation[9] > 0)
-						shipLocation[9] -= 1
+					/*if(shipLocation[9] > 0)
+						shipLocation[9] -= 1*/
 					pieceX = 0;
-					//shipLocation[0] += 1
 					update(0)
 					$(".ship").css("left", pieceX + "px");
 				}
@@ -117,7 +112,6 @@ var board =
 
 		function startFall(offset, mode) {
 			var i=0
-			console.log("startFall")
 			pieceId = setInterval(function() {
 				var i=0
 				var j=0
@@ -131,6 +125,8 @@ var board =
 						mode = i
 				}
 
+				offset = Math.floor(recordServerTime(mode))
+				console.log("servertime offset " +offset)
 				//for updating the rows
 				for(j = 9; j >=1; j--){
 					for(i=0; i <10; i++){
@@ -156,7 +152,7 @@ var board =
 				}
 				else {
 					milliseconds = new Date().getTime();
-					offset = Math.floor((milliseconds / 1000.0) % 10)
+					//offset = Math.floor((milliseconds / 1000.0) % 10)
 					generateRandomTopRow()
 					moneyAmt = ((milliseconds - initTime)/1000) * 0.002 
 					$("#money").html(displayMoney(moneyAmt))
@@ -174,7 +170,7 @@ var board =
 					startFall(offset,mode);
 				}
 
-			},1000);
+			},942);
 	
 		}
 
@@ -203,7 +199,7 @@ var board =
 				}
 				
 			}
-			console.log(shipLocation)
+			//console.log(shipLocation)
 			$(".ship").css("left", mode*50 + "px");
 			$gameboard.append(ship);
 			
@@ -242,9 +238,6 @@ var board =
 			if(board[9][mode] == 1){
 				result = true;
 				console.log("collision")
-				for(var k=0; k<10; k++){
-					update(-1)
-				}
 			}	
 			return result;
 		}
@@ -285,12 +278,56 @@ var board =
 				//$("#value").html( response["results"].length); // server response
 			
 				shipLocation[dataParam] = response["results"].length
-				//alert(shipLocation)
-				//$("#value").html( response["results"][0]["sid"]); // server response
+				for(var k=0; k < 10; k++){
+					if(k != dataParam)
+						updateOthers(k)
+				}
+
+				
+			    }
+			});
+		  }
+
+		}
+
+		function updateOthers(loc){
+
+			$.ajax({
+				    url: "http://codingthecrowd.com/counter.php?key=arpita&data=loc.toString()",
+				 
+				    dataType: "jsonp",
+				 
+				    data: {
+					data: loc.toString(),
+				    
+			    },
+			 
+			    // Work with the response
+			    success: function( response ) {
+				shipLocation[loc] = response["results"].length
 			    }
 			});
 		}
-	}
+
+		function recordServerTime(mode){
+
+			$.ajax({
+			    url: "http://codingthecrowd.com/counter.php?key=arpita&data=mode.toString(); ",
+			 
+			    dataType: "jsonp",
+			 
+			    data: {
+				data: mode.toString()
+			    },
+			 
+			    // Work with the response
+			    success: function( response ) {
+				offset = (response["time"]/ 1000.0) % 10
+				console.log("calculated offset :"+offset)
+		    	}
+		        });
+			return offset
+		}
 		
 	});
 </script>
