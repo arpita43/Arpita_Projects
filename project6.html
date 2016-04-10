@@ -35,6 +35,10 @@ var boardSize = 500
 var offset = 0
 var pixSize = 50
 var moneyAmt = 0
+var status = "going"
+var globalKey = "arpita"
+var checkAll = false;
+
 var shipLocation = [0,0,0,0,0,0,0,0,0,0] //puts the number of players on this position
 var board =
 			[[1,0,0,0,0,0,1,0,0,0],
@@ -49,9 +53,9 @@ var board =
 
 			 [0,0,0,0,0,0,0,1,1,1],
 
-			 [0,1,0,0,0,0,0,1,0,0],
+			 [0,0,0,0,0,0,0,1,0,0],
 
-			 [0,1,0,0,0,0,0,1,0,0],
+			 [0,0,0,0,0,0,0,1,0,0],
 
 			 [0,0,1,1,0,0,0,1,0,0],
 
@@ -70,7 +74,6 @@ var board =
 		var ship = $("<div class='ship'></div>");
 		$gameboard.append(ship);
 		var $moneybox = $("#moneybox")
-		//generateRandomTopRow()
 		$("#money").html(moneyAmt)
 		var trackMov = 0 //to track if player is actually playing
 		update(0)
@@ -79,28 +82,28 @@ var board =
 		$(document).keydown(function(e) {
 				if(e.keyCode==37 && pieceX >= 50) {
 					// left arrow clicked
-					/*if(shipLocation[pieceX/50] > 0)
-						shipLocation[pieceX/50] -= 1*/
+					if(shipLocation[pieceX/50] > 0)
+						shipLocation[pieceX/50] -= 1
 					pieceX -= pixSize;
 					update(pieceX/50)
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 39 && pieceX <= 400) {
 					// right arrow clicked
-					/*if(shipLocation[pieceX/50] > 0)
-						shipLocation[pieceX/50] -= 1*/
+					if(shipLocation[pieceX/50] > 0)
+						shipLocation[pieceX/50] -= 1
 					pieceX += pixSize;
 					update(pieceX/50)
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 37 && pieceX == 0){
 					// left arrow clicked
-					/*if(shipLocation[0] > 0)
-						shipLocation[0] -= 1*/
+					if(shipLocation[0] > 0)
+						shipLocation[0] -= 1
 					pieceX = 450;
 					update(9)
 					$(".ship").css("left", pieceX + "px");
 				} else if(e.keyCode == 39 && pieceX == 450){
-					/*if(shipLocation[9] > 0)
-						shipLocation[9] -= 1*/
+					if(shipLocation[9] > 0)
+						shipLocation[9] -= 1
 					pieceX = 0;
 					update(0)
 					$(".ship").css("left", pieceX + "px");
@@ -119,14 +122,15 @@ var board =
 				//find mode
 				i = 0
 				mode = pieceX/50
-				alert(shipLocation)
 				for(i=1; i < 10; i++){
 					if(shipLocation[i] > shipLocation[mode])
 						mode = i
 				}
+				console.log("mode is"+mode)
+				update(pieceX/50)
 
-				offset = Math.floor(recordServerTime(mode))
-				console.log("servertime offset " +offset)
+				offset = Math.floor(recordServerTime(pieceX/50))
+				//console.log("servertime offset " +offset)
 				//for updating the rows
 				for(j = 9; j >=1; j--){
 					for(i=0; i <10; i++){
@@ -135,10 +139,10 @@ var board =
 					}
 				}
 
-				for(i=0; i < 10; i++){
-					board[0][i] = board[9][i]
-					fillTheBoard(offset%10,mode)
+				for(var k = 0; k < 10; k++){
+					board[0][k] = board[9][k]
 				}
+				fillTheBoard(offset%10,mode)
 
 				if(moneyAmt > 1.0){
 					
@@ -151,14 +155,12 @@ var board =
 					trackMov = 0
 					newTime = milliseconds;
 					clearInterval(pieceId);
-					alert("GAME OVER. YOU EARNED $"+moneyAmt+". Click on OK to return.")
+					alert("GAME OVER. YOU EARNED $"+moneyAmt+". Click on OK to return. over")
 					document.getElementById("mturk_form").submit();
 					
 				}
 				else {
 					milliseconds = new Date().getTime();
-					//offset = Math.floor((milliseconds / 1000.0) % 10)
-					//generateRandomTopRow()
 					moneyAmt = ((milliseconds - initTime)/1000) * 0.002 
 					$("#money").html(displayMoney(moneyAmt))
 					
@@ -174,7 +176,7 @@ var board =
 					startFall(offset,mode);
 				}
 
-			},2000);
+			},700);
 	
 		}
 
@@ -187,55 +189,30 @@ var board =
 			var j=0;
 			for(j=0; j < 10; j++){
 				if(board[index][j] == 1){
-					//alert("displaying at::: "+i+"..."+j);
 					var settledPiece = $("<div class='piece' ></div>");
 					settledPiece.css('left',j*pixSize + 'px')
 					settledPiece.css('top',index*pixSize + 'px')
 					$gameboard.append(settledPiece);
 				}
-				else{
-					//alert("displaying at grey::: "+i+"..."+j);	
+				else{	
 					var settledPiece = $("<div class='destroypiece'></div>");
-					//console.log("displaying at grey::: "+i+"..."+j);
 					settledPiece.css('left', j*pixSize + 'px');
 					settledPiece.css('top', index*pixSize + 'px');
 					$gameboard.append(settledPiece);
 				}
 				
 			}
-			//console.log(shipLocation)
+			console.log(shipLocation)
 			$(".ship").css("left", mode*50 + "px");
 			$gameboard.append(ship);
 			
 			if(checkCollision(mode)){
-				update(-1)
+				console.log(mode)
+				status = "over"
+				update(pieceX/50,mode)
 			}
 		}
 
-		function generateRandomTopRow(){
-			var i=0
-
-			var numOfCulprits = Math.floor((Math.random() * 50) + 0)%2
-			if(numOfCulprits == 1){
-				var col = Math.floor((Math.random() * 10) + 0);
-				for(i = 0; i < 10; i++){
-					if(i == col)
-						board[0][i] = 1
-					else
-						board[0][i] = 0
-				}
-			}
-			else{
-				var col1 = Math.floor((Math.random() * 10) + 0);
-				var col2 = Math.floor((Math.random() * 10) + 0);
-				for(i = 0; i < 10; i++){
-					if(i == col1 || i == col2)
-						board[0][i] = 1
-					else
-						board[0][i] = 0
-				}
-			}
-		}
 
 		function checkCollision(mode){
 			var result = false
@@ -247,9 +224,9 @@ var board =
 		}
 
 		function update(loc) {
-
 		    var dataParam = loc.toString()
-		    if(dataParam < 0){
+		    if(status == "over"){
+				updateGameOver(loc)
 				milliseconds = new Date().getTime();
 				var timePlayed = (milliseconds - initTime)/1000;
 				console.log(timePlayed)
@@ -265,70 +242,64 @@ var board =
 		    }
 		
 		    else {
+			    var wholeData = dataParam + " " + "going"
+                            var param = 'key=' + globalKey + '&data=' + wholeData;
 			    $.ajax({
-				    url: "http://codingthecrowd.com/counter.php?key=arpita&data=dataParam",
-				 
-				    // Tell jQuery we're expecting JSONP
+				    url: "http://codingthecrowd.com/counter.php",
 				    dataType: "jsonp",
-				 
-				    // Tell YQL what we want and that we want JSON
-				    data: {
-					data: dataParam,
-				    
-			    },
+				    data: param,
 			 
-			    // Work with the response
-			    success: function( response ) {
-				//$("#value").html( response["results"].length); // server response
-			
-				shipLocation[dataParam] = response["results"].length
-				for(var k=0; k < 10; k++){
-					if(k != dataParam)
-						updateOthers(k)
-				}
-
-				
-			    }
-			});
-		  }
+				    success: function( response ) {
+					var numOfShip = 0;
+					for(var k=0; k < response["results"].length; k++){
+						var newLoc = response["results"][k]["data"]
+						if(newLoc.contains("over")){
+							status = "over"	
+							update(loc)
+							break;
+						}
+						else if(newLoc.contains(dataParam))
+							numOfShip++
+					}
+					shipLocation[dataParam] = numOfShip;
+			    	    }
+			    });
+		  } //end of else
 
 		}
 
-		function updateOthers(loc){
-
+		function updateGameOver(loc){
+			var wholeData = loc.toString() + " " + "over"
+			param = 'key=' + globalKey + '&data=' + wholeData;
 			$.ajax({
-				    url: "http://codingthecrowd.com/counter.php?key=arpita&data=loc.toString()",
-				 
+				    url: "http://codingthecrowd.com/counter.php",
 				    dataType: "jsonp",
-				 
-				    data: {
-					data: loc.toString(),
-				    
-			    },
+				    data: param,
 			 
-			    // Work with the response
-			    success: function( response ) {
-				shipLocation[loc] = response["results"].length
-			    }
-			});
+				    success: function( response ) {
+			    	    }
+			 });
 		}
 
-		function recordServerTime(mode){
+	
+
+
+
+		function recordServerTime(loc){
+			var param = 'key=' + globalKey + '&data=' + loc.toString() + " " + "going"
 
 			$.ajax({
-			    url: "http://codingthecrowd.com/counter.php?key=arpita&data=mode.toString(); ",
+			    url: "http://codingthecrowd.com/counter.php",
 			 
 			    dataType: "jsonp",
 			 
-			    data: {
-				data: mode.toString()
-			    },
+			    data: param,
 			 
 			    // Work with the response
 			    success: function( response ) {
 				offset = (response["time"]/ 1000.0) % 10
 				console.log("calculated offset :"+offset)
-		    	}
+		    	    }
 		        });
 			return offset
 		}
